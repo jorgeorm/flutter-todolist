@@ -1,12 +1,12 @@
 import 'package:sqflite/sqflite.dart';
 
-import 'services/todo_data_source.dart';
-import 'services/todo_filter_service.dart';
-import 'models/todo_filters.dart';
-import 'models/todo.dart';
+import 'todo_data_source.dart';
+import 'todo_filter_service.dart';
+import '../models/todo_filters.dart';
+import '../models/todo.dart';
 
-class TodoSqliteDatasource implements TodoDataSource {
-  TodoSqliteDatasource({
+class SqliteTodoDatasource implements TodoDataSource {
+  SqliteTodoDatasource({
     required this.database,
     TodoFilterService? filterService,
   }) : filterService = filterService ?? const TodoFilterService();

@@ -1,8 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:todo_demo/todo_manager/todo.dart';
-import 'package:todo_demo/todo_manager/todo_database.dart';
-import 'package:todo_demo/todo_manager/todo_repository.dart';
+import 'package:todo_demo/todo_manager/services/todo_data_source.dart';
+import 'package:todo_demo/todo_manager/models/todo.dart';
+import 'package:todo_demo/todo_manager/todo_sqlitedb.dart';
+import 'package:todo_demo/todo_manager/models/todo_filters.dart';
+import 'package:todo_demo/todo_manager/services/sqlite_todo_datasource.dart';
 import 'package:todo_demo/todo_manager/todo_state.dart';
 
 void main() {
@@ -12,9 +14,9 @@ void main() {
   late TodoState state;
 
   setUp(() async {
-    final db = await TodoDatabase.openInMemory(databaseFactoryFfi);
-    final repository = TodoRepository(database: db);
-    state = TodoState(repository: repository);
+    final db = await TodoSqliteDb.openInMemory(databaseFactoryFfi);
+    final dataSource = SqliteTodoDatasource(database: db);
+    state = TodoState(dataSource: dataSource);
   });
 
   tearDown(() async {
@@ -84,11 +86,11 @@ void main() {
     );
 
     await state.setFilters(
-      isCompleted: true,
-      priority: null,
-      tag: null,
-      sortBy: TodoSortBy.createdAt,
-      sortAscending: true,
+      const TodoFilters(
+        isCompleted: true,
+        sortBy: TodoSortBy.createdAt,
+        sortAscending: true,
+      ),
     );
 
     expect(state.todos, hasLength(1));

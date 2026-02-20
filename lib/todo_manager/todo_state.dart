@@ -1,40 +1,33 @@
 import 'package:flutter/foundation.dart';
 
-import 'todo.dart';
-import 'todo_repository.dart';
+import 'services/todo_data_source.dart';
+import 'models/todo.dart';
+import 'models/todo_filters.dart';
 
 class TodoState extends ChangeNotifier {
-  TodoState({required this.repository});
+  TodoState({required this.dataSource});
 
-  final TodoRepository repository;
+  final TodoDataSource dataSource;
 
   List<Todo> _todos = [];
-  bool? _filterIsCompleted;
-  TodoPriority? _filterPriority;
-  String? _filterTag;
-  TodoSortBy _sortBy = TodoSortBy.createdAt;
-  bool _sortAscending = true;
+  TodoFilters _filters = const TodoFilters();
 
   List<Todo> get todos => _todos;
 
+  TodoFilters get filters => _filters;
+
   Future<void> loadTodos() async {
-    _todos = await repository.fetchFiltered(
-      isCompleted: _filterIsCompleted,
-      priority: _filterPriority,
-      tag: _filterTag,
-      sortBy: _sortBy,
-      sortAscending: _sortAscending,
-    );
+    _todos = await dataSource.fetchFiltered(_filters);
     notifyListeners();
   }
 
   Future<void> addTodo(Todo todo) async {
-    await repository.insert(todo);
+    await dataSource.insert(todo);
     await loadTodos();
   }
 
   Future<void> updateTodo(Todo todo) async {
-    await repository.update(todo);
+    await dataSource.update(todo);
     await loadTodos();
   }
 
@@ -43,42 +36,28 @@ class TodoState extends ChangeNotifier {
       isCompleted: isCompleted,
       updatedAt: DateTime.now(),
     );
-    await repository.update(updated);
+    await dataSource.update(updated);
     await loadTodos();
   }
 
   Future<void> deleteTodo(int id) async {
-    await repository.delete(id);
+    await dataSource.delete(id);
     await loadTodos();
   }
 
-  Future<void> setFilters({
-    bool? isCompleted,
-    TodoPriority? priority,
-    String? tag,
-    TodoSortBy sortBy = TodoSortBy.createdAt,
-    bool sortAscending = true,
-  }) async {
-    _filterIsCompleted = isCompleted;
-    _filterPriority = priority;
-    _filterTag = tag;
-    _sortBy = sortBy;
-    _sortAscending = sortAscending;
+  Future<void> setFilters(TodoFilters filters) async {
+    _filters = filters;
     await loadTodos();
   }
 
   Future<void> clearFilters() async {
-    _filterIsCompleted = null;
-    _filterPriority = null;
-    _filterTag = null;
-    _sortBy = TodoSortBy.createdAt;
-    _sortAscending = true;
+    _filters = const TodoFilters();
     await loadTodos();
   }
 
   @override
   Future<void> dispose() async {
-    await repository.close();
+    await dataSource.close();
     super.dispose();
   }
 }

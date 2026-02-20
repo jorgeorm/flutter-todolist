@@ -1,15 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:todo_demo/todo_manager/todo.dart';
+import 'package:todo_demo/todo_manager/services/todo_data_source.dart';
+import 'package:todo_demo/todo_manager/models/todo.dart';
+import 'package:todo_demo/todo_manager/models/todo_filters.dart';
 import 'package:todo_demo/todo_manager/todo_list_screen.dart';
-import 'package:todo_demo/todo_manager/todo_repository.dart';
 import 'package:todo_demo/todo_manager/todo_state.dart';
 
-class MockTodoRepository extends Mock implements TodoRepository {}
+class MockTodoDataSource extends Mock implements TodoDataSource {}
 
 void main() {
-  late MockTodoRepository mockRepository;
+  late MockTodoDataSource mockDataSource;
 
   setUpAll(() {
     registerFallbackValue(Todo(
@@ -17,26 +18,22 @@ void main() {
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     ));
+    registerFallbackValue(const TodoFilters());
     registerFallbackValue(TodoSortBy.createdAt);
     registerFallbackValue(TodoPriority.medium);
   });
 
   setUp(() {
-    mockRepository = MockTodoRepository();
+    mockDataSource = MockTodoDataSource();
   });
 
   testWidgets('TodoListScreen shows empty state when no todos',
       (WidgetTester tester) async {
     // Setup mock to return empty list
-    when(() => mockRepository.fetchFiltered(
-          isCompleted: any(named: 'isCompleted'),
-          priority: any(named: 'priority'),
-          tag: any(named: 'tag'),
-          sortBy: any(named: 'sortBy'),
-          sortAscending: any(named: 'sortAscending'),
-        )).thenAnswer((_) async => []);
+    when(() => mockDataSource.fetchFiltered(any()))
+      .thenAnswer((_) async => []);
 
-    final state = TodoState(repository: mockRepository);
+    final state = TodoState(dataSource: mockDataSource);
     await state.loadTodos();
 
     await tester.pumpWidget(
@@ -67,15 +64,10 @@ void main() {
     ];
 
     // Setup mock to return the todo list
-    when(() => mockRepository.fetchFiltered(
-          isCompleted: any(named: 'isCompleted'),
-          priority: any(named: 'priority'),
-          tag: any(named: 'tag'),
-          sortBy: any(named: 'sortBy'),
-          sortAscending: any(named: 'sortAscending'),
-        )).thenAnswer((_) async => todos);
+    when(() => mockDataSource.fetchFiltered(any()))
+      .thenAnswer((_) async => todos);
 
-    final state = TodoState(repository: mockRepository);
+    final state = TodoState(dataSource: mockDataSource);
     await state.loadTodos();
 
     await tester.pumpWidget(
@@ -90,15 +82,10 @@ void main() {
   });
 
   testWidgets('TodoListScreen has add button', (WidgetTester tester) async {
-    when(() => mockRepository.fetchFiltered(
-          isCompleted: any(named: 'isCompleted'),
-          priority: any(named: 'priority'),
-          tag: any(named: 'tag'),
-          sortBy: any(named: 'sortBy'),
-          sortAscending: any(named: 'sortAscending'),
-        )).thenAnswer((_) async => []);
+    when(() => mockDataSource.fetchFiltered(any()))
+      .thenAnswer((_) async => []);
 
-    final state = TodoState(repository: mockRepository);
+    final state = TodoState(dataSource: mockDataSource);
     await state.loadTodos();
 
     await tester.pumpWidget(
@@ -113,15 +100,10 @@ void main() {
   });
 
   testWidgets('tap add button shows modal', (WidgetTester tester) async {
-    when(() => mockRepository.fetchFiltered(
-          isCompleted: any(named: 'isCompleted'),
-          priority: any(named: 'priority'),
-          tag: any(named: 'tag'),
-          sortBy: any(named: 'sortBy'),
-          sortAscending: any(named: 'sortAscending'),
-        )).thenAnswer((_) async => []);
+    when(() => mockDataSource.fetchFiltered(any()))
+      .thenAnswer((_) async => []);
 
-    final state = TodoState(repository: mockRepository);
+    final state = TodoState(dataSource: mockDataSource);
     await state.loadTodos();
 
     await tester.pumpWidget(
@@ -155,15 +137,10 @@ void main() {
       updatedAt: now,
     );
 
-    when(() => mockRepository.fetchFiltered(
-          isCompleted: any(named: 'isCompleted'),
-          priority: any(named: 'priority'),
-          tag: any(named: 'tag'),
-          sortBy: any(named: 'sortBy'),
-          sortAscending: any(named: 'sortAscending'),
-        )).thenAnswer((_) async => [todo]);
+    when(() => mockDataSource.fetchFiltered(any()))
+      .thenAnswer((_) async => [todo]);
 
-    final state = TodoState(repository: mockRepository);
+    final state = TodoState(dataSource: mockDataSource);
     await state.loadTodos();
 
     await tester.pumpWidget(
@@ -191,15 +168,10 @@ void main() {
       updatedAt: now,
     );
 
-    when(() => mockRepository.fetchFiltered(
-          isCompleted: any(named: 'isCompleted'),
-          priority: any(named: 'priority'),
-          tag: any(named: 'tag'),
-          sortBy: any(named: 'sortBy'),
-          sortAscending: any(named: 'sortAscending'),
-        )).thenAnswer((_) async => [todo]);
+    when(() => mockDataSource.fetchFiltered(any()))
+      .thenAnswer((_) async => [todo]);
 
-    final state = TodoState(repository: mockRepository);
+    final state = TodoState(dataSource: mockDataSource);
     await state.loadTodos();
 
     await tester.pumpWidget(
@@ -219,15 +191,10 @@ void main() {
   });
 
   testWidgets('filter button opens filter sheet', (WidgetTester tester) async {
-    when(() => mockRepository.fetchFiltered(
-          isCompleted: any(named: 'isCompleted'),
-          priority: any(named: 'priority'),
-          tag: any(named: 'tag'),
-          sortBy: any(named: 'sortBy'),
-          sortAscending: any(named: 'sortAscending'),
-        )).thenAnswer((_) async => []);
+    when(() => mockDataSource.fetchFiltered(any()))
+      .thenAnswer((_) async => []);
 
-    final state = TodoState(repository: mockRepository);
+    final state = TodoState(dataSource: mockDataSource);
     await state.loadTodos();
 
     await tester.pumpWidget(

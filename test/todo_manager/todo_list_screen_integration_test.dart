@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:todo_demo/todo_manager/todo.dart';
-import 'package:todo_demo/todo_manager/todo_database.dart';
+import 'package:todo_demo/todo_manager/models/todo.dart';
+import 'package:todo_demo/todo_manager/todo_sqlitedb.dart';
 import 'package:todo_demo/todo_manager/todo_list_screen.dart';
-import 'package:todo_demo/todo_manager/todo_repository.dart';
+import 'package:todo_demo/todo_manager/services/sqlite_todo_datasource.dart';
 import 'package:todo_demo/todo_manager/todo_state.dart';
 
 void main() {
@@ -20,10 +20,10 @@ void main() {
     late TodoState state;
     
     await tester.runAsync(() async {
-      final db = await TodoDatabase.openInMemory(databaseFactoryFfi);
-      final repository = TodoRepository(database: db);
+      final db = await TodoSqliteDb.openInMemory(databaseFactoryFfi);
+      final dataSource = SqliteTodoDatasource(database: db);
       addTearDown(() async => db.close());
-      state = TodoState(repository: repository);
+      state = TodoState(dataSource: dataSource);
       await state.loadTodos();
     });
 
@@ -45,10 +45,10 @@ void main() {
     late TodoState state;
     
     await tester.runAsync(() async {
-      final db = await TodoDatabase.openInMemory(databaseFactoryFfi);
-      final repository = TodoRepository(database: db);
+      final db = await TodoSqliteDb.openInMemory(databaseFactoryFfi);
+      final dataSource = SqliteTodoDatasource(database: db);
       addTearDown(() async => db.close());
-      state = TodoState(repository: repository);
+      state = TodoState(dataSource: dataSource);
 
       final now = DateTime(2026, 2, 6, 10, 30);
       await state.addTodo(
@@ -79,10 +79,10 @@ void main() {
     late TodoState state;
     
     await tester.runAsync(() async {
-      final db = await TodoDatabase.openInMemory(databaseFactoryFfi);
-      final repository = TodoRepository(database: db);
+      final db = await TodoSqliteDb.openInMemory(databaseFactoryFfi);
+      final dataSource = SqliteTodoDatasource(database: db);
       addTearDown(() async => db.close());
-      state = TodoState(repository: repository);
+      state = TodoState(dataSource: dataSource);
       await state.loadTodos();
     });
 
@@ -101,10 +101,10 @@ void main() {
     late TodoState state;
     
     await tester.runAsync(() async {
-      final db = await TodoDatabase.openInMemory(databaseFactoryFfi);
-      final repository = TodoRepository(database: db);
+      final db = await TodoSqliteDb.openInMemory(databaseFactoryFfi);
+      final dataSource = SqliteTodoDatasource(database: db);
       addTearDown(() async => db.close());
-      state = TodoState(repository: repository);
+      state = TodoState(dataSource: dataSource);
 
       final now = DateTime(2026, 2, 6, 10, 30);
       await state.addTodo(

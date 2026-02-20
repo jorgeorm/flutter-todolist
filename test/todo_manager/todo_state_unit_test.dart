@@ -1,13 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:todo_demo/todo_manager/todo.dart';
-import 'package:todo_demo/todo_manager/todo_repository.dart';
+import 'package:todo_demo/todo_manager/services/todo_data_source.dart';
+import 'package:todo_demo/todo_manager/models/todo.dart';
+import 'package:todo_demo/todo_manager/models/todo_filters.dart';
 import 'package:todo_demo/todo_manager/todo_state.dart';
 
-class MockTodoRepository extends Mock implements TodoRepository {}
+class MockTodoDataSource extends Mock implements TodoDataSource {}
 
 void main() {
-  late MockTodoRepository mockRepository;
+  late MockTodoDataSource mockDataSource;
   late TodoState state;
 
   setUpAll(() {
@@ -15,17 +16,18 @@ void main() {
     registerFallbackValue(
       Todo(title: '', createdAt: DateTime.now(), updatedAt: DateTime.now()),
     );
+    registerFallbackValue(const TodoFilters());
     registerFallbackValue(TodoSortBy.createdAt);
     registerFallbackValue(TodoPriority.medium);
   });
 
   setUp(() {
-    mockRepository = MockTodoRepository();
-    state = TodoState(repository: mockRepository);
+    mockDataSource = MockTodoDataSource();
+    state = TodoState(dataSource: mockDataSource);
   });
 
   group('TodoState with mocks', () {
-    test('loadTodos fetches from repository and notifies listeners', () async {
+    test('loadTodos fetches from dataSource and notifies listeners', () async {
       final now = DateTime(2026, 2, 6, 10, 30);
       final todos = [
         Todo(
@@ -40,13 +42,7 @@ void main() {
       ];
 
       when(
-        () => mockRepository.fetchFiltered(
-          isCompleted: any(named: 'isCompleted'),
-          priority: any(named: 'priority'),
-          tag: any(named: 'tag'),
-          sortBy: any(named: 'sortBy'),
-          sortAscending: any(named: 'sortAscending'),
-        ),
+        () => mockDataSource.fetchFiltered(any()),
       ).thenAnswer((_) async => todos);
 
       var listenerCalled = false;
@@ -60,13 +56,7 @@ void main() {
       expect(state.todos.first.title, 'Plan trip');
       expect(listenerCalled, isTrue);
       verify(
-        () => mockRepository.fetchFiltered(
-          isCompleted: null,
-          priority: null,
-          tag: null,
-          sortBy: TodoSortBy.createdAt,
-          sortAscending: true,
-        ),
+        () => mockDataSource.fetchFiltered(const TodoFilters()),
       ).called(1);
     });
 
@@ -81,28 +71,16 @@ void main() {
         updatedAt: now,
       );
 
-      when(() => mockRepository.insert(any())).thenAnswer((_) async => 1);
+      when(() => mockDataSource.insert(any())).thenAnswer((_) async => 1);
       when(
-        () => mockRepository.fetchFiltered(
-          isCompleted: any(named: 'isCompleted'),
-          priority: any(named: 'priority'),
-          tag: any(named: 'tag'),
-          sortBy: any(named: 'sortBy'),
-          sortAscending: any(named: 'sortAscending'),
-        ),
+        () => mockDataSource.fetchFiltered(any()),
       ).thenAnswer((_) async => [todo.copyWith(id: 1)]);
 
       await state.addTodo(todo);
 
-      verify(() => mockRepository.insert(todo)).called(1);
+      verify(() => mockDataSource.insert(todo)).called(1);
       verify(
-        () => mockRepository.fetchFiltered(
-          isCompleted: null,
-          priority: null,
-          tag: null,
-          sortBy: TodoSortBy.createdAt,
-          sortAscending: true,
-        ),
+        () => mockDataSource.fetchFiltered(const TodoFilters()),
       ).called(1);
       expect(state.todos, hasLength(1));
     });
@@ -119,28 +97,16 @@ void main() {
         updatedAt: now,
       );
 
-      when(() => mockRepository.update(any())).thenAnswer((_) async => 1);
+      when(() => mockDataSource.update(any())).thenAnswer((_) async => 1);
       when(
-        () => mockRepository.fetchFiltered(
-          isCompleted: any(named: 'isCompleted'),
-          priority: any(named: 'priority'),
-          tag: any(named: 'tag'),
-          sortBy: any(named: 'sortBy'),
-          sortAscending: any(named: 'sortAscending'),
-        ),
+        () => mockDataSource.fetchFiltered(any()),
       ).thenAnswer((_) async => [todo]);
 
       await state.updateTodo(todo);
 
-      verify(() => mockRepository.update(todo)).called(1);
+      verify(() => mockDataSource.update(todo)).called(1);
       verify(
-        () => mockRepository.fetchFiltered(
-          isCompleted: null,
-          priority: null,
-          tag: null,
-          sortBy: TodoSortBy.createdAt,
-          sortAscending: true,
-        ),
+        () => mockDataSource.fetchFiltered(const TodoFilters()),
       ).called(1);
     });
 
@@ -156,21 +122,15 @@ void main() {
         updatedAt: now,
       );
 
-      when(() => mockRepository.update(any())).thenAnswer((_) async => 1);
+      when(() => mockDataSource.update(any())).thenAnswer((_) async => 1);
       when(
-        () => mockRepository.fetchFiltered(
-          isCompleted: any(named: 'isCompleted'),
-          priority: any(named: 'priority'),
-          tag: any(named: 'tag'),
-          sortBy: any(named: 'sortBy'),
-          sortAscending: any(named: 'sortAscending'),
-        ),
+        () => mockDataSource.fetchFiltered(any()),
       ).thenAnswer((_) async => [todo.copyWith(isCompleted: true)]);
 
       await state.toggleComplete(todo, true);
 
       final captured = verify(
-        () => mockRepository.update(captureAny()),
+        () => mockDataSource.update(captureAny()),
       ).captured;
       expect(captured, hasLength(1));
       final updatedTodo = captured.first as Todo;
@@ -179,28 +139,16 @@ void main() {
     });
 
     test('deleteTodo removes and reloads', () async {
-      when(() => mockRepository.delete(1)).thenAnswer((_) async => 1);
+      when(() => mockDataSource.delete(1)).thenAnswer((_) async => 1);
       when(
-        () => mockRepository.fetchFiltered(
-          isCompleted: any(named: 'isCompleted'),
-          priority: any(named: 'priority'),
-          tag: any(named: 'tag'),
-          sortBy: any(named: 'sortBy'),
-          sortAscending: any(named: 'sortAscending'),
-        ),
+        () => mockDataSource.fetchFiltered(any()),
       ).thenAnswer((_) async => []);
 
       await state.deleteTodo(1);
 
-      verify(() => mockRepository.delete(1)).called(1);
+      verify(() => mockDataSource.delete(1)).called(1);
       verify(
-        () => mockRepository.fetchFiltered(
-          isCompleted: null,
-          priority: null,
-          tag: null,
-          sortBy: TodoSortBy.createdAt,
-          sortAscending: true,
-        ),
+        () => mockDataSource.fetchFiltered(const TodoFilters()),
       ).called(1);
       expect(state.todos, isEmpty);
     });
@@ -219,17 +167,7 @@ void main() {
         ),
       ];
 
-      when(
-        () => mockRepository.fetchFiltered(
-          isCompleted: true,
-          priority: TodoPriority.high,
-          tag: 'work',
-          sortBy: TodoSortBy.priority,
-          sortAscending: false,
-        ),
-      ).thenAnswer((_) async => filteredTodos);
-
-      await state.setFilters(
+      const filters = TodoFilters(
         isCompleted: true,
         priority: TodoPriority.high,
         tag: 'work',
@@ -237,40 +175,28 @@ void main() {
         sortAscending: false,
       );
 
+      when(
+        () => mockDataSource.fetchFiltered(filters),
+      ).thenAnswer((_) async => filteredTodos);
+
+      await state.setFilters(filters);
+
       expect(state.todos, hasLength(1));
       expect(state.todos.first.title, 'Work task');
       verify(
-        () => mockRepository.fetchFiltered(
-          isCompleted: true,
-          priority: TodoPriority.high,
-          tag: 'work',
-          sortBy: TodoSortBy.priority,
-          sortAscending: false,
-        ),
+        () => mockDataSource.fetchFiltered(filters),
       ).called(1);
     });
 
     test('clearFilters resets to defaults and reloads', () async {
       when(
-        () => mockRepository.fetchFiltered(
-          isCompleted: null,
-          priority: null,
-          tag: null,
-          sortBy: TodoSortBy.createdAt,
-          sortAscending: true,
-        ),
+        () => mockDataSource.fetchFiltered(const TodoFilters()),
       ).thenAnswer((_) async => []);
 
       await state.clearFilters();
 
       verify(
-        () => mockRepository.fetchFiltered(
-          isCompleted: null,
-          priority: null,
-          tag: null,
-          sortBy: TodoSortBy.createdAt,
-          sortAscending: true,
-        ),
+        () => mockDataSource.fetchFiltered(const TodoFilters()),
       ).called(1);
     });
   });

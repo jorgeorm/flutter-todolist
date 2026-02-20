@@ -11,10 +11,16 @@ Feature module for a simple Todo list manager built with Cupertino widgets and S
 
 ## Architecture
 - Model: `Todo` with serialization helpers.
-- Data: `TodoDatabase` creates the schema and opens SQLite databases.
+- Data: `TodoSqliteDb` creates the schema and opens SQLite databases.
 - Repository: `TodoRepository` handles CRUD, filtering, and sorting.
 - State: `TodoState` (ChangeNotifier) owns filters and the current list.
 - UI: `TodoListScreen` for list + add/filter sheets, `TodoManagerScreen` as entry.
+
+### Multiple Backend Support
+
+The app supports multiple database backends through the `TodoDataSource` interface. You can choose between SQLite (default) and Isar (high-performance NoSQL) depending on your needs.
+
+For detailed information on switching backends, performance comparisons, and implementation examples, see [DATA_SOURCE_SWITCHING.md](DATA_SOURCE_SWITCHING.md).
 
 ## Data Model
 - `TodoPriority`: low, medium, high.
@@ -29,7 +35,7 @@ Feature module for a simple Todo list manager built with Cupertino widgets and S
   - createdAt, updatedAt
 
 ## Persistence
-- Schema is created in `TodoDatabase`.
+- Schema is created in `TodoSqliteDb`.
 - Tags are stored as a JSON string in a text column.
 - Sorting supports null-safe due dates (nulls last for ascending).
 
@@ -49,8 +55,8 @@ fvm flutter test test/todo_manager
 
 Common groups:
 - Unit (mocked): `todo_state_mock_test.dart`
-- Integration: `todo_model_test.dart`, `todo_database_schema_test.dart`,
-  `todo_repository_test.dart`, `todo_state_test.dart`
+- Integration: `todo_model_test.dart`, `todo_sqlitedb_schema_test.dart`,
+  `todo_sqlite_datasource_test.dart`, `todo_state_test.dart`
 - Widget: `todo_list_screen_mock_test.dart`, `todo_list_screen_test.dart`
 
 Note: integration-style widget tests use `tester.runAsync` to allow real

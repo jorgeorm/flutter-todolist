@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 
-import 'todo_database.dart';
+import 'services/todo_data_source_factory.dart';
+import 'todo_sqlitedb.dart';
 import 'todo_list_screen.dart';
-import 'todo_repository.dart';
 import 'todo_state.dart';
 
 class TodoManagerScreen extends StatefulWidget {
@@ -22,9 +22,9 @@ class _TodoManagerScreenState extends State<TodoManagerScreen> {
   }
 
   Future<TodoState> _initializeState() async {
-    final db = await TodoDatabase.open();
-    final repository = TodoRepository(database: db);
-    final state = TodoState(repository: repository);
+    final db = await TodoSqliteDb.open();
+    final dataSource = TodoDataSourceFactory.createSqlite(database: db);
+    final state = TodoState(dataSource: dataSource);
     await state.loadTodos();
     return state;
   }

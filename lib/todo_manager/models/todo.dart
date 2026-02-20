@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../shared/milliseconds_converter.dart';
-import '../shared/sqlite_boolean_converter.dart';
+import '../../shared/milliseconds_converter.dart';
+import '../../shared/sqlite_boolean_converter.dart';
 part 'todo.freezed.dart';
 part 'todo.g.dart';
 
